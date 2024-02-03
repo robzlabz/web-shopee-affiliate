@@ -9,6 +9,11 @@ class ProductController extends Controller
 {
     public function store(Request $request)
     {
-        $request->dd();
+        $request->validate([
+            'title' => 'required',
+            'description' => 'required',
+            'video' => 'required|array',
+            'raw_html' => 'required'
+        ]);
     }
 }
