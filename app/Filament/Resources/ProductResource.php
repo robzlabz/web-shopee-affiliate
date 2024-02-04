@@ -16,6 +16,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -59,7 +60,7 @@ class ProductResource extends Resource
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('shopee_link')
+                TextColumn::make('video_link')
                     ->searchable()
                     ->sortable(),
             ])
@@ -83,7 +84,19 @@ class ProductResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    BulkAction::make('posting_all')
+                        ->form(fn(Form $form) => $form->schema([
+                            Select::make('device_id')
+                                ->label('Device')
+                                ->options(\App\Models\Device::pluck('name', 'id')->toArray())
+                                ->required(),
+                        ]))
+                        ->action(function ($records, $data) {
+                            foreach ($records as $record) {
+                                $device = Device::find($data['device_id']);
+                                SafAutomation::make()->postProduct($record, $device);
+                            }
+                        }),
                 ]),
             ]);
     }

@@ -15,6 +15,8 @@ class PostingProductJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $timeout = 0;
+
     /**
      * Create a new job instance.
      */
@@ -51,7 +53,7 @@ class PostingProductJob implements ShouldQueue
         $adbService->clickOn(716, 1231, "Lanjutkan Posting");
         $adbService->clickOn(200, 160, "Lanjutkan Posting");
 
-        $text = 'Wow! Animal Ejection: Tiger, Bear, Dog. Mainan aman tanpa baterai, merangsang motorik. #MainanAnak #AnimalEjection #TanpaBaterai. Beli Sekarang!';
+        $text = '#fyp #shopeeid #shopee #tiktok #mainan #populer #keren';
         // max text is 150 character
         $text = substr($text, 0, 150);
         $adbService->writeText($text, "Nulis Caption");
@@ -61,7 +63,7 @@ class PostingProductJob implements ShouldQueue
         $adbService->clickOn(500, 185, "Pilih Tab Semua Produk");
         $adbService->clickOn(93, 119, "Click Cari Produk");
 
-        $search = 'TokoYoyo Mainan Mobil Mobilan Anak Bayi Edukasi Berjalan Tanpa Baterai Dipencet Perempuan Laki Laki Mainan Edukasi';
+        $search = str_replace('star+', '', $this->product->title);
         $adbService->writeText($search, "Nulis Caption");
 
         $adbService->clickOn(700, 400, "Tambah Produk");
