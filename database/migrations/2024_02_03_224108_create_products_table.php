@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->text('description_ai')->nullable();
             $table->json('tags')->nullable();
+            $table->longText('raw_html')->nullable();
             $table->timestamps();
         });
     }

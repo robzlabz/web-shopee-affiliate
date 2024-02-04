@@ -5,10 +5,16 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
+use App\Services\SafAutomation;
 use Filament\Forms;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,7 +30,24 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Section::make('Product Information')
+                    ->schema([
+                        TextInput::make('title')
+                            ->label('Title')
+                            ->required(),
+                        TextInput::make('shopee_link')
+                            ->label('Shopee Link')
+                            ->required(),
+                        TextInput::make('video_link')
+                            ->label('Video Link')
+                            ->required(),
+                        Textarea::make('description')
+                            ->rows(10)
+                            ->label('Description')
+                            ->required(),
+                    ])
+
+
             ]);
     }
 
@@ -39,6 +62,15 @@ class ProductResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('Posting')
+                    ->requiresConfirmation()
+                    ->form(fn(Form $form) => $form->schema([
+                        Select::make('device_id')
+                            ->label('Device')
+                            ->options(\App\Models\Device::pluck('name', 'id')->toArray())
+                            ->required(),
+                    ]))
+                    ->action(fn($record) => SafAutomation::make()->postProduct($record))
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
