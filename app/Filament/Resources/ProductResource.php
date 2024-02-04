@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
+use App\Models\Device;
 use App\Models\Product;
 use App\Services\SafAutomation;
 use Filament\Forms;
@@ -56,6 +57,11 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('title')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('shopee_link')
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -70,7 +76,10 @@ class ProductResource extends Resource
                             ->options(\App\Models\Device::pluck('name', 'id')->toArray())
                             ->required(),
                     ]))
-                    ->action(fn($record) => SafAutomation::make()->postProduct($record))
+                    ->action(function ($record, $data) {
+                        $device = Device::find($data['device_id']);
+                        SafAutomation::make()->postProduct($record, $device);
+                    })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

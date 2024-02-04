@@ -4,13 +4,22 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Device;
+
 class AndroidBridge
 {
     protected $adbPath = '/Applications/Unity/Hub/Editor/2022.3.14f1/PlaybackEngines/AndroidPlayer/SDK/platform-tools/';
+    private $deviceName;
+
 
     public static function make()
     {
         return new static();
+    }
+
+    public function setDevice(Device $device)
+    {
+        $this->deviceName = $device->name;
     }
 
     public function listOfDevices(): array
@@ -46,5 +55,55 @@ class AndroidBridge
         }
 
         return $isConnected;
+    }
+
+    public function clickOn($x, $y, $message, $sleep_time = 3)
+    {
+        echo $message . "\n";
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} shell input tap $x $y");
+        usleep($sleep_time * 1000000);
+    }
+
+    public function writeText($text, $message = null, $sleep_time = 3)
+    {
+        if ($message) {
+            echo $message . "\n";
+        }
+        $text = str_replace(' ', '%s', $text);
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} shell input text '$text'");
+        usleep(1000000);
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} shell input keyevent 4");  // simulate back button press
+        usleep($sleep_time * 1000000);
+    }
+
+    public function closeApp($package_name)
+    {
+        echo "Closing $package_name app...\n";
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} shell am force-stop $package_name");
+        usleep(3 * 1000000);
+    }
+
+    public function openApp($package_name, $activity_name)
+    {
+        echo "Opening $package_name app...\n";
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} shell am start -n $package_name/$activity_name");
+        usleep(5 * 1000000);
+    }
+
+    public function copyToGalery($file_name)
+    {
+        echo "Copying to galery...\n";
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} push $file_name /sdcard/DCIM/Camera");
+        usleep(3 * 1000000);
+        // Send a media scan intent
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/DCIM/Camera/");
+        usleep(3 * 1000000);
+    }
+
+    public function deleteFile($file_name)
+    {
+        echo "Deleting file...\n";
+        shell_exec("{$this->adbPath}adb -s {$this->deviceName} shell rm /sdcard/DCIM/Camera/$file_name");
+        usleep(3 * 1000000);
     }
 }
